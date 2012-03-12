@@ -32,6 +32,8 @@ status = perRepo $ \repo -> do
     when b $ liftIO $ putStr "Build "
     c <- modifiedSinceCommit repo
     when c $ liftIO $ putStr "Commit "
+    p <- pushPending repo
+    when p $ liftIO $ putStr "Push "
     when (not b && not c) $ liftIO $ putStr "OK"
     liftIO $ putStrLn ""
     return ()

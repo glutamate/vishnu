@@ -32,6 +32,13 @@ modifiedSinceCommit s = do
   gitStat <- fmap lines $ sh "git status -suno"
   return $ not $ null $ gitStat
 
+pushPending :: String -> VisM Bool
+pushPending s = do
+  liftIO $ gotoHomeSubDir s
+  gitStat <- fmap lines $ sh "git status"
+  return $ any ("Your branch is ahead" `isInfixOf`) gitStat
+
+
 -- use github api
 gitUpToDate :: String -> VisM Bool
 gitUpToDate s = return False
