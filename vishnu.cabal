@@ -1,0 +1,17 @@
+Name:                vishnu
+Version:             0.1
+Description:         Build, test and deploy 
+License:             BSD3
+License-file:        LICENSE
+Author:              Tom Nielsen
+Maintainer:          tanielsen@gmail.com
+build-type:          Simple
+Cabal-Version: 	     >= 1.2
+
+Executable vis
+--   Hs-source-dirs:   prog
+   Main-Is:             Vishnu/Vis.hs
+   other-modules:       
+   Build-depends:       base>=4, syb, mtl>2, parsec>=3, 
+                        random, unix, directory, process,containers,
+                        bytestring,binary,aeson, github
