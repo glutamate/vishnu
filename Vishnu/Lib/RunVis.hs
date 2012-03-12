@@ -1,9 +1,11 @@
 module Vishnu.Lib.RunVis where
 
 import Control.Monad
+import Vishnu.Lib.Common
+
 import System.Environment
 
-runVis :: [(String, IO ())] -> IO ()
+runVis :: [(String, VisM ())] -> IO ()
 runVis cmds = do
   args <- getArgs
   case args of 
@@ -16,5 +18,5 @@ help cmds = do
 
 dispatch arg rest cmds 
    = case lookup arg cmds of 
-       Just action -> action
+       Just action -> runVisM action
        Nothing -> putStrLn ("unknown command: "++arg) >> help cmds
