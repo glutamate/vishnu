@@ -38,6 +38,12 @@ pushPending s = do
   gitStat <- fmap lines $ sh "git status"
   return $ any ("Your branch is ahead" `isInfixOf`) gitStat
 
+pullPending :: String -> VisM Bool
+pullPending s = do
+  liftIO $ gotoHomeSubDir s
+  gitStat <- fmap lines $ sh "git remote show origin"
+  return $ any ("local out of date" `isInfixOf`) gitStat
+
 
 -- use github api
 gitUpToDate :: String -> VisM Bool
