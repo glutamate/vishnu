@@ -22,11 +22,24 @@ pull = perRepo $ \repo -> liftIO $ do
 
 showConf :: VisM ()
 showConf = do
-  VisS conf <- ask
+  VisS conf _ <- ask
   lift $ print conf
+
+build :: VisM ()
+build = do
+    VisS _ args <- ask
+    case args of 
+      [] -> perRepo buildIt
+      repos -> mapM_ buildIt repos
+
+buildIt repo = liftIO $ do
+    gotoHomeSubDir repo
+    system "sudo cabal install --global"
+    return ()
 
 status :: VisM ()
 status = perRepo $ \repo -> do
+    VisS _ args <- ask
     liftIO $ putStr $ repo ++ ": "
     b <- modifiedSinceBuild repo
     when b $ liftIO $ putStr "Build "
@@ -34,7 +47,9 @@ status = perRepo $ \repo -> do
     when c $ liftIO $ putStr "Commit "
     p <- pushPending repo
     when p $ liftIO $ putStr "Push "
-    pl <- pullPending repo
+    pl <- if "p" `elem` args 
+             then pullPending repo
+             else return False
     when p $ liftIO $ putStr "Push "
     when (not b && not c && not p && not pl) $ liftIO $ putStr "OK"
     liftIO $ putStrLn ""

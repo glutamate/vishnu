@@ -13,24 +13,24 @@ import System.Exit
 import System.IO
 
 
-data VisS = VisS { configVal :: Value }
+data VisS = VisS { configVal :: Value, moreArgs :: [String] }
 
 type VisM = ReaderT VisS IO
 
-runVisM :: VisM a -> IO a
-runVisM vm = do
+runVisM :: [String] -> VisM a -> IO a
+runVisM args vm = do
   gotoHomeDir
   e <- doesFileExist ".vishnu.json"
   if not e 
-     then runReaderT vm $ VisS Null
+     then runReaderT vm $ VisS Null args
      else do mv <- fmap decode' $ B.readFile ".vishnu.json"
              case mv of 
                 Nothing -> fail "vishnu: error reading config file .vishnu.json"
-                Just v -> runReaderT vm $ VisS v
+                Just v -> runReaderT vm $ VisS v args
 
 getConfig :: FromJSON a => String -> a-> VisM a
 getConfig s def = do
-  VisS val <- ask
+  VisS val _ <- ask
   return $ getConfig' s val def
 
 getConfig' [] val def = case fromJSON val of

@@ -18,5 +18,5 @@ help cmds = do
 
 dispatch arg rest cmds 
    = case lookup arg cmds of 
-       Just action -> runVisM action
+       Just action -> runVisM rest action
        Nothing -> putStrLn ("unknown command: "++arg) >> help cmds

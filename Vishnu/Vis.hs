@@ -8,4 +8,5 @@ import Vishnu.Cmds.Pull
 
 main = runVis [("pull", pull),
                ("showconf", showConf),
-               ("status", status) ]
+               ("status", status),
+               ("build", build) ]
