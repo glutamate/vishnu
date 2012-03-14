@@ -11,26 +11,31 @@ import qualified Data.Text as T
 import System.Process
 import System.Exit
 import System.IO
+import Data.List
 
 
-data VisS = VisS { configVal :: Value, moreArgs :: [String] }
+
+data VisS = VisS { configVal :: Value, 
+                   moreArgs :: [String],
+                   optArgs :: [String] }
 
 type VisM = ReaderT VisS IO
 
 runVisM :: [String] -> VisM a -> IO a
 runVisM args vm = do
   gotoHomeDir
+  let (margs, optargs) = partition ((/='-') . head) args
   e <- doesFileExist ".vishnu.json"
   if not e 
-     then runReaderT vm $ VisS Null args
+     then runReaderT vm $ VisS Null margs optargs
      else do mv <- fmap decode' $ B.readFile ".vishnu.json"
              case mv of 
                 Nothing -> fail "vishnu: error reading config file .vishnu.json"
-                Just v -> runReaderT vm $ VisS v args
+                Just v -> runReaderT vm $ VisS v margs optargs
 
 getConfig :: FromJSON a => String -> a-> VisM a
 getConfig s def = do
-  VisS val _ <- ask
+  VisS val _ _ <- ask
   return $ getConfig' s val def
 
 getConfig' [] val def = case fromJSON val of

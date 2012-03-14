@@ -9,21 +9,30 @@ import Data.Ord
 
 import Vishnu.Lib.Common
 
+
 --does "dist/" exist and is it the most recently modified item?
 modifiedSinceBuild :: String -> VisM Bool
 modifiedSinceBuild s = do
   liftIO $ gotoHomeSubDir s
-  conts <- liftIO $ getDirectoryContents "."
+  newer <- fmap (map (take 4 . drop 2) . lines ) $ sh "find -cnewer dist"
+  return $ not $ null $ filter noDistGit newer
+
+{-  conts <- liftIO $ getDirectoryContents "."
   entryTimes <- fmap (map fst . reverse . sortBy (comparing snd)) $ forM conts $ \entry -> do
     modTime <- liftIO $ getModificationTime entry
     return (entry, modTime)
+  liftIO $ print entryTimes
   return $ decideModifiedSinceBuild entryTimes
 
 decideModifiedSinceBuild ("." : rest) = decideModifiedSinceBuild rest
 decideModifiedSinceBuild (".." : rest) = decideModifiedSinceBuild rest
 decideModifiedSinceBuild (".git" : rest) = decideModifiedSinceBuild rest
 decideModifiedSinceBuild ("dist" : rest) = False
-decideModifiedSinceBuild _ = True
+decideModifiedSinceBuild _ = True -}
+
+noDistGit "dist" = False
+noDistGit ".git" = False
+noDistGit _ = True
 
 -- run git status
 modifiedSinceCommit :: String -> VisM Bool
