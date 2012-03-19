@@ -2,6 +2,7 @@ module Vishnu.Lib.RunVis where
 
 import Control.Monad
 import Vishnu.Lib.Common
+import Data.List
 
 import System.Environment
 
@@ -13,10 +14,14 @@ runVis cmds = do
     arg0:rest -> dispatch arg0 rest cmds
 
 help cmds = do
- putStrLn "available commands:\n"
+ putStrLn "vishnu: available commands:\n"
  forM_ cmds $ \(cmd,_) -> putStrLn ("  "++cmd) 
+ putStrLn ""
 
+
+dispatch :: String -> [String] -> [(String, VisM ())] -> IO ()
 dispatch arg rest cmds 
-   = case lookup arg cmds of 
-       Just action -> runVisM rest action
-       Nothing -> putStrLn ("unknown command: "++arg) >> help cmds
+   = case filter ((arg `isPrefixOf`) . fst) cmds of 
+       (_,action):[] -> runVisM rest action
+       [] -> putStrLn ("unknown command: "++arg) >> help cmds
+       actions -> putStrLn ("ambiguous command: "++arg) >> help actions
