@@ -5,28 +5,23 @@ import Control.Monad.Trans
 import System.Directory
 import System.Cmd
 import Control.Monad.Reader
-
+import Data.List
 
 import Vishnu.Lib.Common
 import Vishnu.Lib.Repo
 
-perRepoFromArgs ma = do
-  args <- fmap moreArgs ask
---  liftIO $ print args
-  case args of 
-      [] -> perRepo ma
-      repos -> mapM_ ma repos
-
-
-perRepo ma = do
-  repos <- fmap words $ getConfig "localrepos" ""
-  forM_ repos ma
 
 pull :: VisM ()
 pull = perRepoFromArgs $ \repo -> liftIO $ do
     putStr $ repo ++ ": "
     gotoHomeSubDir repo
     system $ "git pull"
+
+diff :: VisM ()
+diff = perRepoFromArgs $ \repo -> liftIO $ do
+    gotoHomeSubDir repo
+    system $ "git diff"
+
 
 showConf :: VisM ()
 showConf = do

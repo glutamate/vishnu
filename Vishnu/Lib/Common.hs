@@ -69,3 +69,17 @@ sh cmd = liftIO $ do (hin, hout, herr, ph) <- runInteractiveCommand cmd
                                            " :",
                                            serr
                                           ]
+
+perRepoFromArgs ma = do
+  args <- fmap moreArgs ask
+--  liftIO $ print args
+  case args of 
+      [] -> perRepo ma
+      repos -> do localRepos <- fmap words $ getConfig "localrepos" ""
+                  forM_  localRepos $ \lr-> 
+                     when (any (`isPrefixOf` lr) repos) $ ma lr >> return ()
+
+
+perRepo ma = do
+  repos <- fmap words $ getConfig "localrepos" ""
+  forM_ repos ma
