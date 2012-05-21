@@ -6,6 +6,7 @@ import System.Directory
 import System.Cmd
 import Control.Monad.Reader
 import Data.List
+import System.Exit
 
 import Vishnu.Lib.Common
 import Vishnu.Lib.Repo
@@ -33,9 +34,13 @@ build = perRepoFromArgs buildIt
 
 buildIt repo =  do
     mod <- modifiedSinceBuild repo
-    when mod $ liftIO $ do gotoHomeSubDir repo
-                           system "sudo cabal install --global"
-                           return ()
+    VisS _ _ args <- ask
+    when (mod || "-f" `elem` args) $ liftIO $ do 
+        gotoHomeSubDir repo
+        ExitSuccess <- if "-p" `elem` args
+                          then system "sudo cabal install --global -p"
+                          else system "sudo cabal install --global"
+        return ()
 
 status :: VisM ()
 status = perRepoFromArgs $ \repo -> do
