@@ -7,6 +7,7 @@ import qualified Data.ByteString.Lazy as B
 import Data.Aeson
 import qualified Data.HashMap.Lazy as H
 import qualified Data.Text as T
+import Data.Maybe 
 
 import System.Process
 import System.Exit
@@ -48,6 +49,8 @@ getConfig' s (Object obj) def =
          Just v -> getConfig' (drop 1 rest) v def
 getConfig' s v def = def
 
+
+
 gotoHomeSubDir s = do
   home <- getHomeDirectory
   setCurrentDirectory $ home++"/"++s
@@ -75,11 +78,28 @@ perRepoFromArgs ma = do
 --  liftIO $ print args
   case args of 
       [] -> perRepo ma
-      repos -> do localRepos <- fmap words $ getConfig "localrepos" ""
+      repos -> do localRepos <- getLocalRepos
                   forM_  localRepos $ \lr-> 
                      when (any (`isPrefixOf` lr) repos) $ ma lr >> return ()
 
 
 perRepo ma = do
-  repos <- fmap words $ getConfig "localrepos" ""
+  repos <- getLocalRepos
   forM_ repos ma
+
+getLocalRepos =  do
+    repos <- getConfig "localrepos" [] -- :: [H.HashMap String String] 
+    return $  catMaybes $ flip map repos $ \repo ->  H.lookup "name" repo
+
+reposDependOn nm = do
+    repos <- getConfig "localrepos" [] -- :: [H.HashMap String String] 
+    return $  catMaybes $ flip map repos $ \repo ->  
+               case (H.lookup "name" repo, H.lookup "depends" repo) of
+                  (Just rname, Just depends) | nm `elem` words depends
+                                                 -> Just rname
+                                             | otherwise
+                                                 -> Nothing
+                                                   
+                  _ -> Nothing
+
+                   

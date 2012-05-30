@@ -37,9 +37,11 @@ buildIt repo =  do
     VisS _ _ args <- ask
     when (mod || "-f" `elem` args) $ liftIO $ do 
         gotoHomeSubDir repo
-        ExitSuccess <- if "-p" `elem` args
-                          then system "sudo cabal install --global -p"
-                          else system "sudo cabal install --global"
+        let profstr = if "-p" `elem` args then " -p" else ""
+        let runStr =  if "-g" `elem` args 
+                         then "sudo cabal install --global" 
+                         else "cabal install"
+        ExitSuccess <-  system $ runStr ++ profstr
         return ()
 
 status :: VisM ()
