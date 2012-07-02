@@ -40,8 +40,7 @@ update_repos = do
 -- set/check path
 
 has_pkgs pkgs = do
-  forM_ pkgs $ \pkg-> do
-     system $ "sudo apt-get install -y -q "++pkg 
+     system $ "sudo apt-get install -y -q "++unwords pkgs
 
 has_github_repo user reponame = do
   gotoHomeDir
