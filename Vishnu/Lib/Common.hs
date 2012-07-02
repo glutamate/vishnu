@@ -13,12 +13,14 @@ import System.Process
 import System.Exit
 import System.IO
 import Data.List
+import Control.Concurrent.MVar
+import Control.Concurrent
 
 
 
 data VisS = VisS { configVal :: Value, 
                    moreArgs :: [String],
-                   optArgs :: [String] }
+                   optArgs :: [String] } deriving Show
 
 type VisM = ReaderT VisS IO
 
@@ -27,12 +29,20 @@ runVisM args vm = do
   gotoHomeDir
   let (margs, optargs) = partition ((/='-') . head) args
   e <- doesFileExist ".vishnu.json"
-  if not e 
-     then runReaderT vm $ VisS Null margs optargs
-     else do mv <- fmap decode' $ B.readFile ".vishnu.json"
-             case mv of 
-                Nothing -> fail "vishnu: error reading config file .vishnu.json"
-                Just v -> runReaderT vm $ VisS v margs optargs
+  if e 
+     then runVisMfromFile ".vishnu.json" vm (margs, optargs)
+     else do e <- doesFileExist "Dropbox/.vishnu.json"
+             if e 
+                then runVisMfromFile "Dropbox/.vishnu.json" vm (margs, optargs)
+                else do putStrLn "warning; could not find .vishnu.json"
+                        runReaderT vm $ VisS Null margs optargs
+
+runVisMfromFile fnm vm (margs, optargs) = do
+   mv <- fmap decode' $ B.readFile fnm
+   case mv of 
+      Nothing -> fail $ "vishnu: error reading config file "++fnm
+      Just v -> runReaderT vm $ VisS v margs optargs
+
 
 getConfig :: FromJSON a => String -> a-> VisM a
 getConfig s def = do
@@ -73,6 +83,9 @@ sh cmd = liftIO $ do (hin, hout, herr, ph) <- runInteractiveCommand cmd
                                            serr
                                           ]
 
+shProc :: String -> [String] -> VisM String
+shProc cmd args = lift $ readProcess cmd args "" 
+
 perRepoFromArgs ma = do
   args <- fmap moreArgs ask
 --  liftIO $ print args
@@ -82,6 +95,15 @@ perRepoFromArgs ma = do
                   forM_  localRepos $ \lr-> 
                      when (any (`isPrefixOf` lr) repos) $ ma lr >> return ()
 
+perRepoFromArgsPar ma = do
+  args <- fmap moreArgs ask
+--  liftIO $ print args
+  case args of 
+      [] -> perRepo ma
+      repos -> do localRepos <- getLocalRepos
+                  inPar $ flip map localRepos $ \lr-> 
+                     when (any (`isPrefixOf` lr) repos) $ ma lr >> return ()
+                  return ()
 
 perRepo ma = do
   repos <- getLocalRepos
@@ -103,3 +125,16 @@ reposDependOn nm = do
                   _ -> Nothing
 
                    
+
+inPar :: [VisM a] -> VisM [a]
+inPar mxs = do
+  state <- ask
+  mvs <- forM mxs $ \mx -> do
+            mv <- lift newEmptyMVar
+            lift $ forkIO $ do x <- runReaderT mx state
+                               putMVar mv x
+            return mv
+  forM mvs $ \mv -> do 
+       lift $ takeMVar mv
+            
+                          

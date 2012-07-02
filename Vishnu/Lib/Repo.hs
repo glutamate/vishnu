@@ -50,7 +50,7 @@ pushPending s = do
 pullPending :: String -> VisM Bool
 pullPending s = do
   liftIO $ gotoHomeSubDir s
-  gitStat <- fmap lines $ sh "git remote show origin"
+  gitStat <- fmap lines $ shProc "git" (words "remote show origin")
   return $ any ("local out of date" `isInfixOf`) gitStat
 
 

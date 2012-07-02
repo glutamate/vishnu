@@ -45,7 +45,7 @@ buildIt repo =  do
         return ()
 
 status :: VisM ()
-status = perRepoFromArgs $ \repo -> do
+status = perRepoFromArgsPar $ \repo -> do
     VisS _ _ args <- ask
     liftIO $ putStr $ repo ++ ": "
     b <- modifiedSinceBuild repo

@@ -5,6 +5,7 @@ import Vishnu.Lib.RunVis
 import Vishnu.Lib.Testing
 
 import Vishnu.Cmds.Pull
+import Vishnu.Cmds.Update
 
 
 main = runVis [("pull", pull),
@@ -12,4 +13,5 @@ main = runVis [("pull", pull),
                ("status", status),
                ("build", build),
                ("diff", diff),
+               ("update", update),
                ("test", test) ]
