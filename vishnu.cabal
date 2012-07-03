@@ -15,4 +15,5 @@ Executable vis
    ghc-options:         -O2 -threaded -with-rtsopts=-N
    Build-depends:       base>=4, syb, mtl>2, parsec>=3, 
                         random, unix, directory, process,containers,
-                        bytestring,binary,aeson>=0.5, text, unordered-containers
+                        bytestring,binary,aeson>=0.5, text, 
+                        unordered-containers, vector

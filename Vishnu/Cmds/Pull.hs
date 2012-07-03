@@ -40,7 +40,7 @@ buildIt repo =  do
         let profstr = if "-p" `elem` args then " -p" else ""
         let runStr =  if "-g" `elem` args 
                          then "sudo cabal install --global" 
-                         else "cabal install"
+                         else "cabal install --force-reinstalls"
         ExitSuccess <-  system $ runStr ++ profstr
         return ()
 
